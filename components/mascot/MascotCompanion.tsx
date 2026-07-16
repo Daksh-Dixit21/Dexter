@@ -370,7 +370,7 @@ export function MascotCompanion() {
                         className="flex items-center gap-2 py-1 border-b border-zinc-900/50 last:border-0 group"
                       >
                         <button
-                          onClick={() => handleTaskComplete(todo.id)}
+                          onClick={() => handleTaskComplete()}
                           className="text-zinc-700 hover:text-green-400 transition-colors shrink-0"
                           title="Mark done"
                         >
