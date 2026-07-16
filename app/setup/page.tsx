@@ -27,7 +27,7 @@ const setupSteps = [
 
 const envVars = [
   "GITHUB_TOKEN",
-  "VERCEL_TOKEN",
+  "DEXTER_VERCEL_TOKEN",
   "NETLIFY_TOKEN",
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHAT_ID",

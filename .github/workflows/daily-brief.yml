@@ -20,14 +20,14 @@ jobs:
       - name: Fetch Vercel Projects
         id: vercel
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_TOKEN: ${{ secrets.DEXTER_VERCEL_TOKEN }}
         run: |
           if [ -n "$VERCEL_TOKEN" ]; then
             PROJECTS=$(curl -s "https://api.vercel.com/v9/projects?limit=10" \
               -H "Authorization: Bearer $VERCEL_TOKEN" | \
               jq -r '.projects[:5] | .[] | "  • \(.name): \(.targets.production.readyState // "unknown")"' 2>/dev/null || echo "  • Could not fetch")
           else
-            PROJECTS="  • VERCEL_TOKEN not configured"
+            PROJECTS="  • DEXTER_VERCEL_TOKEN not configured"
           fi
           echo "PROJECTS<<EOF" >> $GITHUB_OUTPUT
           echo "$PROJECTS" >> $GITHUB_OUTPUT

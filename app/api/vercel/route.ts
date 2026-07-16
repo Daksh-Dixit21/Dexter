@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 const VERCEL_API = "https://api.vercel.com";
 
 function getToken(req: NextRequest): string | null {
-  return req.headers.get("x-vercel-token") || process.env.VERCEL_TOKEN || null;
+  return req.headers.get("x-vercel-token") || process.env.DEXTER_VERCEL_TOKEN || null;
 }
 
 export async function GET(req: NextRequest) {
