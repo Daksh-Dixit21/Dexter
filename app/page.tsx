@@ -1,65 +1,133 @@
-import Image from "next/image";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { PageLayout } from "@/components/layout/PageLayout";
+import { AppDock } from "@/components/layout/AppDock";
+import { CommandPalette } from "@/components/command/CommandPalette";
+import { Greeting } from "@/components/home/Greeting";
+import { QuickActions } from "@/components/home/QuickActions";
+import TodayMission from "@/components/home/TodayMission";
+import FocusCard from "@/components/home/FocusCard";
+import AttentionFeed from "@/components/home/AttentionFeed";
+import RecentProjects from "@/components/home/RecentProjects";
+import JourneyProgress from "@/components/home/JourneyProgress";
+import MorningBrief from "@/components/brief/MorningBrief";
+import FocusModule from "@/components/focus/FocusModule";
+import VisionBoard from "@/components/vision/VisionBoard";
+import JourneyTimeline from "@/components/journey/JourneyTimeline";
+import TodoSystem from "@/components/todos/TodoSystem";
+import DeployView from "@/components/deploy/DeployView";
+import ProjectList from "@/components/projects/ProjectList";
+import { ReadingList } from "@/components/reading/ReadingList";
+import { ReminderList } from "@/components/reminders/ReminderList";
+import { SubscriptionList } from "@/components/subscriptions/SubscriptionList";
 
 export default function Home() {
+  const [onboardingComplete] = useLocalStorage("dexter.onboarding", false);
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [activeView, setActiveView] = useState("home");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && onboardingComplete === false) {
+      router.push("/onboarding");
+    }
+  }, [mounted, onboardingComplete, router]);
+
+  const handleNavigate = (view: string) => {
+    setActiveView(view);
+  };
+
+  if (!mounted || onboardingComplete === false) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 rounded-full bg-accent/20 animate-pulse mx-auto" />
+          <p className="text-sm text-text-muted">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <PageLayout>
+      <CommandPalette />
+      <div className="max-w-5xl mx-auto space-y-6 pb-24">
+        {activeView === "home" && (
+          <>
+            <Greeting />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <TodayMission />
+              <FocusCard />
+            </div>
+            <QuickActions />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MorningBrief />
+              <JourneyProgress />
+            </div>
+            <RecentProjects />
+          </>
+        )}
+
+        {activeView === "deploy" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Deployments</h1>
+            <DeployView />
+          </div>
+        )}
+
+        {activeView === "projects" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Projects</h1>
+            <ProjectList />
+          </div>
+        )}
+
+        {activeView === "reading" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Reading & Tasks</h1>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <ReadingList />
+                <TodoSystem />
+              </div>
+              <div className="space-y-6">
+                <ReminderList />
+                <SubscriptionList />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeView === "focus" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Focus</h1>
+            <FocusModule />
+          </div>
+        )}
+
+        {activeView === "vision" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Vision Board</h1>
+            <VisionBoard />
+          </div>
+        )}
+
+        {activeView === "journey" && (
+          <div className="space-y-6">
+            <h1 className="text-2xl font-semibold text-text">Journey</h1>
+            <JourneyTimeline />
+          </div>
+        )}
+      </div>
+
+      <AppDock activeView={activeView} onNavigate={handleNavigate} />
+    </PageLayout>
   );
 }
