@@ -1,9 +1,9 @@
 "use client";
 
-import { getGreeting, getDailyQuoteSeed } from "@/lib/utils";
+import { motion } from "framer-motion";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { QUOTES } from "@/lib/constants";
-import { motion } from "framer-motion";
+import { getDailyQuoteSeed, getGreeting } from "@/lib/utils";
 
 export function Greeting() {
   const [userName] = useLocalStorage("dexter.userName", "Builder");

@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Play,
-  Pause,
-  RotateCcw,
   Coffee,
-  Zap,
-  Timer,
   Flame,
   Moon,
+  Pause,
+  Play,
+  RotateCcw,
+  Timer,
   Trash2,
+  Zap,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
 
@@ -83,7 +83,10 @@ function formatDateKey(date: Date): string {
 }
 
 export default function FocusModule() {
-  const [sessions, setSessions] = useLocalStorage<Session[]>("dexter.focusSessions", []);
+  const [sessions, setSessions] = useLocalStorage<Session[]>(
+    "dexter.focusSessions",
+    [],
+  );
   const [sessionType, setSessionType] = useState<SessionType>("work");
   const [secondsLeft, setSecondsLeft] = useState(TIMER_CONFIG.work);
   const [isRunning, setIsRunning] = useState(false);
@@ -97,7 +100,7 @@ export default function FocusModule() {
   useEffect(() => {
     const today = formatDateKey(new Date());
     const count = sessions.filter(
-      (s) => s.date === today && s.type === "work"
+      (s) => s.date === today && s.type === "work",
     ).length;
     setPomodorosToday(count);
   }, [sessions]);
@@ -140,9 +143,9 @@ export default function FocusModule() {
 
     if (sessionType === "work") {
       const today = formatDateKey(new Date());
-      const workSessionsToday = sessions.filter(
-        (s) => s.date === today && s.type === "work"
-      ).length + 1;
+      const workSessionsToday =
+        sessions.filter((s) => s.date === today && s.type === "work").length +
+        1;
 
       if (workSessionsToday % 4 === 0) {
         setSessionType("longBreak");
@@ -248,7 +251,7 @@ export default function FocusModule() {
               className={cn(
                 !isDeepWork
                   ? "bg-accent text-white"
-                  : "text-text-muted border-border"
+                  : "text-text-muted border-border",
               )}
             >
               <Timer className="w-4 h-4 mr-1" />
@@ -264,7 +267,7 @@ export default function FocusModule() {
               className={cn(
                 isDeepWork
                   ? "bg-accent text-white"
-                  : "text-text-muted border-border"
+                  : "text-text-muted border-border",
               )}
             >
               <Zap className="w-4 h-4 mr-1" />
@@ -285,17 +288,23 @@ export default function FocusModule() {
                     sessionType === type && !isRunning
                       ? "bg-surface-elevated text-text shadow-sm"
                       : "text-text-dim hover:text-text-muted",
-                    isRunning && "cursor-not-allowed"
+                    isRunning && "cursor-not-allowed",
                   )}
                 >
-                  {type === "work" && <Timer className="w-3.5 h-3.5 mr-1 inline" />}
-                  {type === "break" && <Coffee className="w-3.5 h-3.5 mr-1 inline" />}
-                  {type === "longBreak" && <Moon className="w-3.5 h-3.5 mr-1 inline" />}
+                  {type === "work" && (
+                    <Timer className="w-3.5 h-3.5 mr-1 inline" />
+                  )}
+                  {type === "break" && (
+                    <Coffee className="w-3.5 h-3.5 mr-1 inline" />
+                  )}
+                  {type === "longBreak" && (
+                    <Moon className="w-3.5 h-3.5 mr-1 inline" />
+                  )}
                   {type === "work"
                     ? "Work"
                     : type === "break"
-                    ? "Break"
-                    : "Long Break"}
+                      ? "Break"
+                      : "Long Break"}
                 </button>
               ))}
             </div>
@@ -335,10 +344,10 @@ export default function FocusModule() {
                 {isDeepWork
                   ? "Deep Work"
                   : sessionType === "work"
-                  ? "Focus"
-                  : sessionType === "break"
-                  ? "Break"
-                  : "Long Break"}
+                    ? "Focus"
+                    : sessionType === "break"
+                      ? "Break"
+                      : "Long Break"}
               </span>
             </div>
           </div>
@@ -363,7 +372,11 @@ export default function FocusModule() {
               ) : (
                 <Play className="w-5 h-5 mr-2" />
               )}
-              {isRunning ? "Pause" : isDeepWork && deepWorkStart ? "Resume" : "Start"}
+              {isRunning
+                ? "Pause"
+                : isDeepWork && deepWorkStart
+                  ? "Resume"
+                  : "Start"}
             </Button>
           </div>
 
@@ -416,10 +429,10 @@ export default function FocusModule() {
                           session.type === "work"
                             ? "bg-accent"
                             : session.type === "break"
-                            ? "bg-green-400"
-                            : session.type === "longBreak"
-                            ? "bg-blue-400"
-                            : "bg-purple-400"
+                              ? "bg-green-400"
+                              : session.type === "longBreak"
+                                ? "bg-blue-400"
+                                : "bg-purple-400",
                         )}
                       />
                       <div>
@@ -427,8 +440,8 @@ export default function FocusModule() {
                           {session.type === "longBreak"
                             ? "Long Break"
                             : session.type === "deepWork"
-                            ? "Deep Work"
-                            : session.type}
+                              ? "Deep Work"
+                              : session.type}
                         </p>
                         <p className="text-xs text-text-dim">{session.date}</p>
                       </div>

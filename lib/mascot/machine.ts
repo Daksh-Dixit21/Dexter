@@ -1,4 +1,4 @@
-import { Mood } from "@/lib/constants";
+import type { Mood } from "@/lib/constants";
 
 type MascotState = {
   mood: Mood;
@@ -35,7 +35,10 @@ const MOOD_PRIORITIES: Record<Mood, number> = {
   idle: 1,
 };
 
-export function mascotReducer(state: MascotState, action: MascotAction): MascotState {
+export function mascotReducer(
+  state: MascotState,
+  action: MascotAction,
+): MascotState {
   const now = Date.now();
 
   switch (action.type) {
@@ -47,7 +50,12 @@ export function mascotReducer(state: MascotState, action: MascotAction): MascotS
       return { ...state, mood: "affection", lastInteraction: now };
 
     case "DEPLOY_START":
-      return { ...state, mood: "thinking", deployStatus: "running", lastInteraction: now };
+      return {
+        ...state,
+        mood: "thinking",
+        deployStatus: "running",
+        lastInteraction: now,
+      };
 
     case "DEPLOY_SUCCESS":
       return {
@@ -59,7 +67,12 @@ export function mascotReducer(state: MascotState, action: MascotAction): MascotS
       };
 
     case "DEPLOY_FAILED":
-      return { ...state, mood: "concerned", deployStatus: "failed", lastInteraction: now };
+      return {
+        ...state,
+        mood: "concerned",
+        deployStatus: "failed",
+        lastInteraction: now,
+      };
 
     case "INACTIVE_5MIN":
       return { ...state, mood: "sleeping", lastInteraction: now };

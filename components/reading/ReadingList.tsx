@@ -1,12 +1,12 @@
 "use client";
 
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { Card } from "@/components/ui/card";
+import { AnimatePresence, motion } from "framer-motion";
+import { BookOpen, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Plus, ExternalLink, Trash2, BookOpen } from "lucide-react";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface ReadingLink {
   id: string;
@@ -18,10 +18,24 @@ interface ReadingLink {
 const MAX_LINKS = 5;
 
 export function ReadingList() {
-  const [links, setLinks] = useLocalStorage<ReadingLink[]>("dexter.reading", []);
+  const [links, setLinks] = useLocalStorage<ReadingLink[]>(
+    "dexter.reading",
+    [],
+  );
   const [isAdding, setIsAdding] = useState(false);
   const [newLink, setNewLink] = useState({ url: "", title: "" });
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      if ((event as CustomEvent<{ action: string }>).detail.action === "addReading") {
+        setIsAdding(true);
+        setError("");
+      }
+    };
+    window.addEventListener("dexter:command-action", handler);
+    return () => window.removeEventListener("dexter:command-action", handler);
+  }, []);
 
   const addLink = () => {
     if (links.length >= MAX_LINKS) {
@@ -52,7 +66,9 @@ export function ReadingList() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-text-muted" />
-          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Reading List</h2>
+          <h2 className="text-sm font-semibold text-text-muted uppercase tracking-wider">
+            Reading List
+          </h2>
         </div>
         <span className="text-xs text-text-dim">
           {links.length}/{MAX_LINKS}
@@ -71,7 +87,9 @@ export function ReadingList() {
             >
               <Card className="flex items-center gap-3 p-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-text truncate">{link.title}</p>
+                  <p className="text-sm font-medium text-text truncate">
+                    {link.title}
+                  </p>
                   <p className="text-xs text-text-dim truncate">{link.url}</p>
                 </div>
                 <Button variant="ghost" size="icon" className="h-7 w-7" asChild>

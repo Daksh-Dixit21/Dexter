@@ -1,0 +1,76 @@
+name: 📬 Telegram Daily Brief
+
+on:
+  schedule:
+    # 8:00 AM IST = 2:30 AM UTC
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+    inputs:
+      custom_message:
+        description: "Custom message to append"
+        required: false
+
+jobs:
+  send-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch Vercel Projects
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ]; then
+            PROJECTS=$(curl -s "https://api.vercel.com/v9/projects?limit=10" \
+              -H "Authorization: Bearer $VERCEL_TOKEN" | \
+              jq -r '.projects[:5] | .[] | "  • \(.name): \(.targets.production.readyState // "unknown")"' 2>/dev/null || echo "  • Could not fetch")
+          else
+            PROJECTS="  • VERCEL_TOKEN not configured"
+          fi
+          echo "PROJECTS<<EOF" >> $GITHUB_OUTPUT
+          echo "$PROJECTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Fetch Netlify Sites
+        id: netlify
+        env:
+          NETLIFY_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        run: |
+          if [ -n "$NETLIFY_TOKEN" ]; then
+            SITES=$(curl -s "https://api.netlify.com/api/v1/sites?per_page=5" \
+              -H "Authorization: Bearer $NETLIFY_TOKEN" | \
+              jq -r '.[:5][] | "  • \(.name): \(.published_deploy.state // "unknown")"' 2>/dev/null || echo "  • Could not fetch")
+          else
+            SITES="  • NETLIFY_TOKEN not configured"
+          fi
+          echo "SITES<<EOF" >> $GITHUB_OUTPUT
+          echo "$SITES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram Brief
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          TODAY=$(TZ="Asia/Kolkata" date "+%A, %d %B %Y")
+          TIME=$(TZ="Asia/Kolkata" date "+%I:%M %p")
+          CUSTOM="${{ inputs.custom_message }}"
+
+          MESSAGE="🌅 <b>Good Morning! Daily Brief</b>
+          📅 ${TODAY} · ${TIME} IST
+
+          ☁️ <b>Vercel Projects</b>
+          ${{ steps.vercel.outputs.PROJECTS }}
+
+          🌐 <b>Netlify Sites</b>
+          ${{ steps.netlify.outputs.SITES }}
+
+          💡 <i>Make today count — ship something great!</i>
+          ${CUSTOM:+
+          📝 ${CUSTOM}}"
+
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\": \"${CHAT_ID}\", \"text\": \"$(echo "$MESSAGE" | sed 's/\"/\\"/g')\", \"parse_mode\": \"HTML\"}"

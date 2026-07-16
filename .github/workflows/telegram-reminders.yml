@@ -1,0 +1,53 @@
+name: Telegram Reminders
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send due reminders
+        env:
+          DEXTER_TELEGRAM_REMINDERS: ${{ secrets.DEXTER_TELEGRAM_REMINDERS }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$DEXTER_TELEGRAM_REMINDERS" ] || [ "$DEXTER_TELEGRAM_REMINDERS" = "[]" ]; then
+            echo "No recurring reminders configured."
+            exit 0
+          fi
+
+          NOW_HOUR=$(TZ=Asia/Kolkata date +%H)
+          NOW_MIN=$(TZ=Asia/Kolkata date +%M)
+          CURRENT_MINUTES=$((10#$NOW_HOUR * 60 + 10#$NOW_MIN))
+          DAY_OF_WEEK=$(TZ=Asia/Kolkata date +%u)
+
+          echo "$DEXTER_TELEGRAM_REMINDERS" | jq -c '.[]' | while read -r reminder; do
+            ACTIVE=$(echo "$reminder" | jq -r '.active')
+            if [ "$ACTIVE" != "true" ]; then
+              continue
+            fi
+
+            REPEAT=$(echo "$reminder" | jq -r '.repeat')
+            if [ "$REPEAT" = "weekdays" ] && [ "$DAY_OF_WEEK" -gt 5 ]; then
+              continue
+            fi
+
+            REMINDER_TIME=$(echo "$reminder" | jq -r '.time')
+            R_HOUR=$(echo "$REMINDER_TIME" | cut -d: -f1)
+            R_MIN=$(echo "$REMINDER_TIME" | cut -d: -f2)
+            REMINDER_MINUTES=$((10#$R_HOUR * 60 + 10#$R_MIN))
+
+            DIFF=$((CURRENT_MINUTES - REMINDER_MINUTES))
+            if [ "$DIFF" -ge 0 ] && [ "$DIFF" -lt 15 ]; then
+              MESSAGE=$(echo "$reminder" | jq -r '.message')
+              echo "Sending: $MESSAGE"
+              curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+                -d chat_id="$TELEGRAM_CHAT_ID" \
+                -d parse_mode="HTML" \
+                -d text="🔔 <b>Dexter Reminder</b>%0A%0A$MESSAGE%0A%0A<i>⏰ $REMINDER_TIME · $REPEAT</i>"
+            fi
+          done

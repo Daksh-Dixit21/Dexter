@@ -1,9 +1,9 @@
 "use client";
 
-import { useReducer, useEffect, useCallback, useRef } from "react";
-import { mascotReducer, initialMascotState } from "@/lib/mascot/machine";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { Mood } from "@/lib/constants";
+import { initialMascotState, mascotReducer } from "@/lib/mascot/machine";
 
 export function useMascot() {
   const [state, dispatch] = useReducer(mascotReducer, initialMascotState);
@@ -24,9 +24,12 @@ export function useMascot() {
   useEffect(() => {
     const resetInactivityTimer = () => {
       if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = setTimeout(() => {
-        dispatch({ type: "INACTIVE_5MIN" });
-      }, 5 * 60 * 1000);
+      inactivityTimerRef.current = setTimeout(
+        () => {
+          dispatch({ type: "INACTIVE_5MIN" });
+        },
+        5 * 60 * 1000,
+      );
     };
 
     const handleActivity = () => {
@@ -73,10 +76,22 @@ export function useMascot() {
       petCooldownRef.current = null;
     }, 2000);
   }, []);
-  const triggerTaskComplete = useCallback(() => dispatch({ type: "TASK_COMPLETE" }), []);
-  const triggerDeployStart = useCallback(() => dispatch({ type: "DEPLOY_START" }), []);
-  const triggerDeploySuccess = useCallback(() => dispatch({ type: "DEPLOY_SUCCESS" }), []);
-  const triggerDeployFailed = useCallback(() => dispatch({ type: "DEPLOY_FAILED" }), []);
+  const triggerTaskComplete = useCallback(
+    () => dispatch({ type: "TASK_COMPLETE" }),
+    [],
+  );
+  const triggerDeployStart = useCallback(
+    () => dispatch({ type: "DEPLOY_START" }),
+    [],
+  );
+  const triggerDeploySuccess = useCallback(
+    () => dispatch({ type: "DEPLOY_SUCCESS" }),
+    [],
+  );
+  const triggerDeployFailed = useCallback(
+    () => dispatch({ type: "DEPLOY_FAILED" }),
+    [],
+  );
   const triggerError = useCallback(() => dispatch({ type: "ERROR" }), []);
   const triggerMood = useCallback((mood: Mood) => {
     if (mood === "happy") dispatch({ type: "CLICK" });

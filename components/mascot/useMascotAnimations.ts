@@ -1,9 +1,11 @@
 "use client";
 
 import { useMotionValue, useSpring, useTransform } from "framer-motion";
-import { useEffect, useState, RefObject } from "react";
+import { type RefObject, useEffect, useState } from "react";
 
-export function useMascotAnimations(containerRef?: RefObject<HTMLDivElement | null>) {
+export function useMascotAnimations(
+  containerRef?: RefObject<HTMLDivElement | null>,
+) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const [blinkState, setBlinkState] = useState(false);

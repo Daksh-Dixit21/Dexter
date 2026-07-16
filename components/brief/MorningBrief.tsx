@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Sun,
-  RefreshCw,
-  Target,
-  ListTodo,
-  Clock,
-  Sparkles,
   ArrowRight,
   CheckCircle2,
   Circle,
+  Clock,
+  ListTodo,
+  RefreshCw,
+  Sparkles,
+  Sun,
+  Target,
   TrendingUp,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { QUOTES } from "@/lib/constants";
@@ -103,10 +103,9 @@ function formatTimestamp(isoStr: string): string {
 export default function MorningBrief() {
   const [visionBoard] = useLocalStorage<VisionGoal[]>("dexter.visionBoard", []);
   const [todos] = useLocalStorage<Todo[]>("dexter.todos", []);
-  const [focusSessions] = useLocalStorage<{ date: string; duration: number; type: string }[]>(
-    "dexter.focusSessions",
-    []
-  );
+  const [focusSessions] = useLocalStorage<
+    { date: string; duration: number; type: string }[]
+  >("dexter.focusSessions", []);
   const [quote, setQuote] = useState(getRandomQuote);
   const [lastRefreshed, setLastRefreshed] = useState(new Date().toISOString());
 
@@ -119,14 +118,26 @@ export default function MorningBrief() {
   const topGoal = visionBoard.length > 0 ? visionBoard[0] : null;
 
   const todaySessions = focusSessions.filter((s) => s.date === todayKey);
-  const totalFocusMinutes = todaySessions.reduce((acc, s) => acc + Math.round(s.duration / 60), 0);
+  const totalFocusMinutes = todaySessions.reduce(
+    (acc, s) => acc + Math.round(s.duration / 60),
+    0,
+  );
 
   const recentActivity = useMemo(() => {
-    const activities: { text: string; time: string; icon: React.ElementType; color: string }[] = [];
+    const activities: {
+      text: string;
+      time: string;
+      icon: React.ElementType;
+      color: string;
+    }[] = [];
 
     const recentCompleted = [...todos]
       .filter((t) => t.completedAt)
-      .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime())
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt!).getTime() -
+          new Date(a.completedAt!).getTime(),
+      )
       .slice(0, 3);
 
     recentCompleted.forEach((t) => {
@@ -164,7 +175,7 @@ export default function MorningBrief() {
             <span className="text-xl">{getGreetingEmoji()}</span>
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-text">{getGreeting()}</h2>
+            <h2 className="text-lg font-semibold text-text">Quick Briefing</h2>
             <p className="text-xs text-text-dim">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -190,13 +201,17 @@ export default function MorningBrief() {
         <div className="p-4 rounded-lg bg-background border border-border">
           <div className="flex items-center gap-2 mb-2">
             <Target className="w-4 h-4 text-accent" />
-            <h3 className="text-sm font-medium text-text">Today&apos;s Focus</h3>
+            <h3 className="text-sm font-medium text-text">
+              Today&apos;s Focus
+            </h3>
           </div>
           {topGoal ? (
             <div>
               <p className="text-sm font-medium text-text">{topGoal.title}</p>
               {topGoal.description && (
-                <p className="text-xs text-text-muted mt-1 line-clamp-2">{topGoal.description}</p>
+                <p className="text-xs text-text-muted mt-1 line-clamp-2">
+                  {topGoal.description}
+                </p>
               )}
               <div className="flex items-center gap-2 mt-2">
                 <Badge variant="secondary" className="text-[10px]">
@@ -209,15 +224,15 @@ export default function MorningBrief() {
                     topGoal.status === "achieved"
                       ? "bg-green-500/20 text-green-400"
                       : topGoal.status === "in_progress"
-                      ? "bg-blue-500/20 text-blue-400"
-                      : "bg-gray-500/20 text-gray-400"
+                        ? "bg-blue-500/20 text-blue-400"
+                        : "bg-gray-500/20 text-gray-400",
                   )}
                 >
                   {topGoal.status === "not_started"
                     ? "Not Started"
                     : topGoal.status === "in_progress"
-                    ? "In Progress"
-                    : "Achieved"}
+                      ? "In Progress"
+                      : "Achieved"}
                 </Badge>
                 {topGoal.targetDate && (
                   <span className="text-[10px] text-text-dim">
@@ -267,9 +282,18 @@ export default function MorningBrief() {
                 const ActivityIcon = activity.icon;
                 return (
                   <div key={i} className="flex items-center gap-2 text-xs">
-                    <ActivityIcon className={cn("w-3.5 h-3.5 flex-shrink-0", activity.color)} />
-                    <span className="text-text-muted truncate flex-1">{activity.text}</span>
-                    <span className="text-text-dim flex-shrink-0">{activity.time}</span>
+                    <ActivityIcon
+                      className={cn(
+                        "w-3.5 h-3.5 flex-shrink-0",
+                        activity.color,
+                      )}
+                    />
+                    <span className="text-text-muted truncate flex-1">
+                      {activity.text}
+                    </span>
+                    <span className="text-text-dim flex-shrink-0">
+                      {activity.time}
+                    </span>
                   </div>
                 );
               })}
@@ -281,7 +305,9 @@ export default function MorningBrief() {
         <div className="p-4 rounded-lg bg-accent/5 border border-accent/20">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-4 h-4 text-accent" />
-            <h3 className="text-sm font-medium text-accent">Motivational Insight</h3>
+            <h3 className="text-sm font-medium text-accent">
+              Motivational Insight
+            </h3>
           </div>
           <AnimatePresence mode="wait">
             <motion.p
@@ -304,7 +330,8 @@ export default function MorningBrief() {
           Last refreshed: {formatTimestamp(lastRefreshed)}
         </p>
         <p className="text-[10px] text-text-dim">
-          {visionBoard.length} goals · {todos.length} todos · {focusSessions.length} sessions
+          {visionBoard.length} goals · {todos.length} todos ·{" "}
+          {focusSessions.length} sessions
         </p>
       </div>
     </Card>

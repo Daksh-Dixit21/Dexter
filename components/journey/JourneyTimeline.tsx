@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Rocket,
-  Plus,
-  Trash2,
+  Calendar,
+  Check,
   Code,
-  Upload,
-  TrendingUp,
   DollarSign,
+  MapPin,
+  Plus,
+  Rocket,
+  Trash2,
+  TrendingUp,
+  Upload,
   User,
   X,
-  Check,
-  Calendar,
-  MapPin,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
@@ -35,9 +35,18 @@ interface Milestone {
   createdAt: string;
 }
 
-const CATEGORIES: MilestoneCategory[] = ["Code", "Deploy", "Growth", "Revenue", "Personal"];
+const CATEGORIES: MilestoneCategory[] = [
+  "Code",
+  "Deploy",
+  "Growth",
+  "Revenue",
+  "Personal",
+];
 
-const CATEGORY_CONFIG: Record<MilestoneCategory, { icon: React.ElementType; color: string; bg: string }> = {
+const CATEGORY_CONFIG: Record<
+  MilestoneCategory,
+  { icon: React.ElementType; color: string; bg: string }
+> = {
   Code: { icon: Code, color: "text-blue-400", bg: "bg-blue-400" },
   Deploy: { icon: Upload, color: "text-green-400", bg: "bg-green-400" },
   Growth: { icon: TrendingUp, color: "text-purple-400", bg: "bg-purple-400" },
@@ -49,7 +58,8 @@ const SAMPLE_MILESTONES: Milestone[] = [
   {
     id: "sample-1",
     title: "Started Building",
-    description: "Had the idea and decided to start building Dexter, a calm builder companion.",
+    description:
+      "Had the idea and decided to start building Dexter, a calm builder companion.",
     date: "2024-01-15",
     category: "Personal",
     createdAt: "2024-01-15T00:00:00.000Z",
@@ -104,16 +114,18 @@ function formatDate(dateStr: string): string {
 export default function JourneyTimeline() {
   const [milestones, setMilestones] = useLocalStorage<Milestone[]>(
     "dexter.journey",
-    SAMPLE_MILESTONES
+    SAMPLE_MILESTONES,
   );
   const [isAdding, setIsAdding] = useState(false);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
-  const [formDate, setFormDate] = useState(new Date().toISOString().split("T")[0]);
+  const [formDate, setFormDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
   const [formCategory, setFormCategory] = useState<MilestoneCategory>("Code");
 
   const sortedMilestones = [...milestones].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
   );
 
   const resetForm = () => {
@@ -210,7 +222,9 @@ export default function JourneyTimeline() {
                 />
                 <select
                   value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value as MilestoneCategory)}
+                  onChange={(e) =>
+                    setFormCategory(e.target.value as MilestoneCategory)
+                  }
                   className="flex h-10 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {CATEGORIES.map((cat) => (
@@ -282,7 +296,7 @@ export default function JourneyTimeline() {
                           "w-8 h-8 md:w-12 md:h-12 rounded-full flex items-center justify-center",
                           "bg-surface-elevated border-2",
                           catConfig.color,
-                          "border-current"
+                          "border-current",
                         )}
                       >
                         <CatIcon className="w-4 h-4 md:w-5 md:h-5" />
@@ -294,7 +308,9 @@ export default function JourneyTimeline() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-medium text-text">{milestone.title}</h3>
+                            <h3 className="font-medium text-text">
+                              {milestone.title}
+                            </h3>
                             <Badge
                               variant="secondary"
                               className={cn("text-xs", catConfig.color)}

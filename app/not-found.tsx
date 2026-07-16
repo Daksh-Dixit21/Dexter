@@ -6,8 +6,12 @@ export default function NotFound() {
       <div className="text-center space-y-6">
         <div className="text-6xl">404</div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold text-foreground">Page not found</h1>
-          <p className="text-muted-foreground">This page seems to have wandered off.</p>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Page not found
+          </h1>
+          <p className="text-muted-foreground">
+            This page seems to have wandered off.
+          </p>
         </div>
         <Link
           href="/"

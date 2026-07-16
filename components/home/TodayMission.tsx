@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle2, Circle, Target, Sparkles } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, Circle, Sparkles, Target } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ interface Mission {
 export default function TodayMission() {
   const [mission, setMission] = useLocalStorage<Mission | null>(
     "dexter.todayMission",
-    null
+    null,
   );
   const [inputValue, setInputValue] = useState("");
   const [showCelebration, setShowCelebration] = useState(false);
@@ -30,6 +30,18 @@ export default function TodayMission() {
       return () => clearTimeout(timer);
     }
   }, [mission?.completed]);
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      if ((event as CustomEvent<{ action: string }>).detail.action !== "setMission") {
+        return;
+      }
+      setMission(null);
+      setInputValue("");
+    };
+    window.addEventListener("dexter:command-action", handler);
+    return () => window.removeEventListener("dexter:command-action", handler);
+  }, [setMission]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,11 +127,18 @@ export default function TodayMission() {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                  delay: 0.1,
+                }}
                 className="flex items-center gap-2"
               >
                 <CheckCircle2 className="h-5 w-5 text-green-400" />
-                <span className="text-green-400 font-medium">Mission complete!</span>
+                <span className="text-green-400 font-medium">
+                  Mission complete!
+                </span>
               </motion.div>
               <p className="text-text text-sm text-center line-through opacity-60">
                 {mission.text}
@@ -145,7 +164,9 @@ export default function TodayMission() {
                 <Circle className="h-5 w-5 text-accent hover:text-accent/80 transition-colors" />
               </button>
               <div className="flex-1 min-w-0">
-                <p className="text-text text-sm leading-relaxed">{mission.text}</p>
+                <p className="text-text text-sm leading-relaxed">
+                  {mission.text}
+                </p>
               </div>
               <Button
                 variant="ghost"

@@ -1,13 +1,13 @@
 "use client";
 
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { RadialProgress } from "@/components/ui/radial-progress";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { RadialProgress } from "@/components/ui/radial-progress";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface Subscription {
   id: string;
@@ -15,21 +15,67 @@ interface Subscription {
   cost: number;
   budget: number;
   renewalDate: string;
+  createdAt?: number;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function getRenewalInfo(subscription: Subscription) {
+  const renewalTime = new Date(subscription.renewalDate).getTime();
+  if (!subscription.renewalDate || !Number.isFinite(renewalTime)) {
+    return { progress: 0, label: "--", caption: "No renewal date" };
+  }
+
+  const now = Date.now();
+  const daysLeft = Math.ceil((renewalTime - now) / DAY_MS);
+  const startedAt = subscription.createdAt ?? now - 30 * DAY_MS;
+  const totalWindow = Math.max(renewalTime - startedAt, 30 * DAY_MS);
+  const elapsed = Math.min(Math.max(now - startedAt, 0), totalWindow);
+  const progress = Math.min(Math.max((elapsed / totalWindow) * 100, 0), 100);
+
+  if (daysLeft < 0) {
+    return {
+      progress: 100,
+      label: "due",
+      caption: `${Math.abs(daysLeft)}d overdue`,
+    };
+  }
+
+  if (daysLeft === 0) {
+    return { progress: 100, label: "today", caption: "Renews today" };
+  }
+
+  return {
+    progress,
+    label: `${daysLeft}d`,
+    caption: `Renews in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`,
+  };
 }
 
 export function SubscriptionList() {
-  const [subscriptions, setSubscriptions] = useLocalStorage<Subscription[]>("dexter.subscriptions", []);
+  const [subscriptions, setSubscriptions] = useLocalStorage<Subscription[]>(
+    "dexter.subscriptions",
+    [],
+  );
   const [isAdding, setIsAdding] = useState(false);
-  const [newSub, setNewSub] = useState({ name: "", cost: "", budget: "", renewalDate: "" });
+  const [newSub, setNewSub] = useState({
+    name: "",
+    cost: "",
+    budget: "",
+    renewalDate: "",
+  });
 
   const addSubscription = () => {
     if (!newSub.name.trim() || !newSub.cost) return;
+    const cost = Number.parseFloat(newSub.cost) * 100;
+    const budget = Number.parseFloat(newSub.budget || "100") * 100;
     const sub: Subscription = {
       id: crypto.randomUUID(),
       name: newSub.name.trim(),
-      cost: Number.parseFloat(newSub.cost) * 100,
-      budget: Number.parseFloat(newSub.budget || "100") * 100,
+      cost: Number.isFinite(cost) ? cost : 0,
+      budget: Number.isFinite(budget) && budget > 0 ? budget : 10000,
       renewalDate: newSub.renewalDate,
+      createdAt: Date.now(),
     };
     setSubscriptions([...subscriptions, sub]);
     setNewSub({ name: "", cost: "", budget: "", renewalDate: "" });
@@ -45,13 +91,17 @@ export function SubscriptionList() {
   return (
     <div className="space-y-3">
       <div className="text-center">
-        <p className="text-2xl font-semibold text-text">${(totalMonthly / 100).toFixed(2)}</p>
+        <p className="text-2xl font-semibold text-text">
+          ${(totalMonthly / 100).toFixed(2)}
+        </p>
         <p className="text-xs text-text-dim">monthly total</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <AnimatePresence mode="popLayout">
-          {subscriptions.map((sub) => (
+          {subscriptions.map((sub) => {
+            const renewal = getRenewalInfo(sub);
+            return (
             <motion.div
               key={sub.id}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -60,12 +110,20 @@ export function SubscriptionList() {
             >
               <Card className="relative p-3 flex flex-col items-center gap-1">
                 <RadialProgress
-                  value={(sub.cost / sub.budget) * 100}
+                  value={renewal.progress}
                   size={60}
                   strokeWidth={5}
+                  label={renewal.label}
                 />
-                <p className="text-xs font-medium text-text truncate w-full text-center">{sub.name}</p>
-                <p className="text-[10px] text-text-dim">${(sub.cost / 100).toFixed(0)}/mo</p>
+                <p className="text-xs font-medium text-text truncate w-full text-center">
+                  {sub.name}
+                </p>
+                <p className="text-[10px] text-text-dim">
+                  ${(sub.cost / 100).toFixed(0)}/mo
+                </p>
+                <p className="text-[10px] text-text-dim text-center">
+                  {renewal.caption}
+                </p>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -76,7 +134,8 @@ export function SubscriptionList() {
                 </Button>
               </Card>
             </motion.div>
-          ))}
+            );
+          })}
         </AnimatePresence>
       </div>
 
@@ -107,7 +166,9 @@ export function SubscriptionList() {
           <Input
             placeholder="Renewal date"
             value={newSub.renewalDate}
-            onChange={(e) => setNewSub({ ...newSub, renewalDate: e.target.value })}
+            onChange={(e) =>
+              setNewSub({ ...newSub, renewalDate: e.target.value })
+            }
             className="h-8 text-sm"
             type="date"
           />

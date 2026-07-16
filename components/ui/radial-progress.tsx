@@ -7,16 +7,26 @@ function RadialProgress({
   strokeWidth = 6,
   className,
   color,
+  label,
 }: {
   value: number;
   size?: number;
   strokeWidth?: number;
   className?: string;
   color?: string;
+  label?: string;
 }) {
-  const radius = (size - strokeWidth) / 2;
+  const safeSize = Number.isFinite(size) && size > 0 ? size : 80;
+  const safeStrokeWidth =
+    Number.isFinite(strokeWidth) && strokeWidth > 0
+      ? Math.min(strokeWidth, safeSize)
+      : 6;
+  const safeValue = Number.isFinite(value)
+    ? Math.min(Math.max(value, 0), 100)
+    : 0;
+  const radius = Math.max((safeSize - safeStrokeWidth) / 2, 0);
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+  const offset = circumference - (safeValue / 100) * circumference;
 
   const getColor = (val: number) => {
     if (color) return color;
@@ -26,24 +36,29 @@ function RadialProgress({
   };
 
   return (
-    <div className={cn("relative inline-flex items-center justify-center", className)}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div
+      className={cn(
+        "relative inline-flex items-center justify-center",
+        className,
+      )}
+    >
+      <svg width={safeSize} height={safeSize} className="-rotate-90">
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={safeSize / 2}
+          cy={safeSize / 2}
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth={strokeWidth}
+          strokeWidth={safeStrokeWidth}
           className="text-border opacity-30"
         />
         <circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={safeSize / 2}
+          cy={safeSize / 2}
           r={radius}
           fill="none"
-          stroke={getColor(value)}
-          strokeWidth={strokeWidth}
+          stroke={getColor(safeValue)}
+          strokeWidth={safeStrokeWidth}
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
@@ -51,7 +66,9 @@ function RadialProgress({
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xs font-semibold text-text">{Math.round(value)}%</span>
+        <span className="text-xs font-semibold text-text">
+          {label ?? `${Math.round(safeValue)}%`}
+        </span>
       </div>
     </div>
   );

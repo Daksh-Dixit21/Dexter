@@ -1,0 +1,53 @@
+name: 🕰️ Stale Repo Check
+
+on:
+  schedule:
+    # Every Monday at 9 AM IST = 3:30 AM UTC
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+jobs:
+  stale-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Stale Repos & Notify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+        run: |
+          # Fetch repos sorted by pushed_at
+          REPOS=$(curl -s "https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=50&sort=pushed&direction=asc" \
+            -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+            -H "Accept: application/vnd.github.v3+json")
+
+          # Find repos not pushed in 90 days
+          CUTOFF=$(date -d "90 days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-90d +%Y-%m-%dT%H:%M:%SZ)
+          
+          STALE=$(echo "$REPOS" | jq -r --arg cutoff "$CUTOFF" '
+            .[] | select(.pushed_at < $cutoff and .archived == false) |
+            "  • \(.name) — last push: \(.pushed_at[:10])"
+          ' | head -10)
+
+          TOTAL=$(echo "$REPOS" | jq length)
+          STALE_COUNT=$(echo "$STALE" | grep -c "•" || echo 0)
+
+          if [ -z "$STALE" ] || [ "$STALE_COUNT" = "0" ]; then
+            STALE_MSG="  ✅ No stale repos! All up to date."
+          else
+            STALE_MSG="$STALE"
+          fi
+
+          MESSAGE="🕰️ <b>Weekly Repo Health Check</b>
+
+          📊 Total repos: ${TOTAL}
+          ⚠️ Stale (90d+): ${STALE_COUNT}
+
+          ${STALE_MSG}
+
+          <i>Review stale repos — archive or revive them!</i>"
+
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\": \"${CHAT_ID}\", \"text\": \"$(echo "$MESSAGE" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))" | tr -d '"')\", \"parse_mode\": \"HTML\"}"

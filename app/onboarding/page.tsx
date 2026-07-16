@@ -1,26 +1,70 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  ArrowRight,
+  BookOpen,
+  Check,
+  Clock,
+  Globe,
+  Rocket,
+  Target,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Rocket, Globe, Clock, Target, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { GitHubIcon } from "@/components/ui/github-icon";
+import { Input } from "@/components/ui/input";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 const steps = [
-  { id: "welcome", title: "Welcome to Dexter", subtitle: "A calm companion for builders" },
-  { id: "name", title: "What should we call you?", subtitle: "We'll use this for greetings" },
-  { id: "mission", title: "What's your mission?", subtitle: "Help us personalize your experience" },
-  { id: "building", title: "What are you building?", subtitle: "Tell us about your current project" },
-  { id: "github", title: "Connect GitHub", subtitle: "Access your repositories" },
+  {
+    id: "welcome",
+    title: "Welcome to Dexter",
+    subtitle: "A calm companion for builders",
+  },
+  {
+    id: "name",
+    title: "What should we call you?",
+    subtitle: "We'll use this for greetings",
+  },
+  {
+    id: "mission",
+    title: "What's your mission?",
+    subtitle: "Help us personalize your experience",
+  },
+  {
+    id: "building",
+    title: "What are you building?",
+    subtitle: "Tell us about your current project",
+  },
+  {
+    id: "github",
+    title: "Connect GitHub",
+    subtitle: "Access your repositories",
+  },
   { id: "vercel", title: "Connect Vercel", subtitle: "Deploy with ease" },
-  { id: "netlify", title: "Connect Netlify", subtitle: "Alternative deployment" },
-  { id: "goals", title: "Set your long-term goals", subtitle: "What do you want to achieve?" },
-  { id: "week", title: "Plan this week", subtitle: "What do you want to ship this week?" },
-  { id: "finish", title: "Let's build together!", subtitle: "Everything is ready" },
+  {
+    id: "netlify",
+    title: "Connect Netlify",
+    subtitle: "Alternative deployment",
+  },
+  {
+    id: "goals",
+    title: "Set your long-term goals",
+    subtitle: "What do you want to achieve?",
+  },
+  {
+    id: "week",
+    title: "Plan this week",
+    subtitle: "What do you want to ship this week?",
+  },
+  {
+    id: "finish",
+    title: "Let's build together!",
+    subtitle: "Everything is ready",
+  },
 ];
 
 const missions = [
@@ -34,11 +78,26 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useLocalStorage("dexter.userName", "");
   const [userMission, setUserMission] = useLocalStorage("dexter.mission", "");
-  const [projectName, setProjectName] = useLocalStorage("dexter.currentProject", "");
+  const [projectName, setProjectName] = useLocalStorage(
+    "dexter.currentProject",
+    "",
+  );
   const [goals, setGoals] = useLocalStorage("dexter.weeklyGoals", "");
-  const [longTermGoals, setLongTermGoals] = useLocalStorage<{id: string; title: string; description: string; category: string; targetDate: string; status: string}[]>("dexter.visionBoard", []);
+  const [longTermGoals, setLongTermGoals] = useLocalStorage<
+    {
+      id: string;
+      title: string;
+      description: string;
+      category: string;
+      targetDate: string;
+      status: string;
+    }[]
+  >("dexter.visionBoard", []);
   const [goalInput, setGoalInput] = useState("");
-  const [onboardingComplete, setOnboardingComplete] = useLocalStorage("dexter.onboarding", false);
+  const [onboardingComplete, setOnboardingComplete] = useLocalStorage(
+    "dexter.onboarding",
+    false,
+  );
   const router = useRouter();
 
   const currentStep = steps[step];
@@ -60,14 +119,17 @@ export default function OnboardingPage() {
 
   const addGoal = () => {
     if (goalInput.trim()) {
-      setLongTermGoals([...longTermGoals, {
-        id: Date.now().toString(),
-        title: goalInput.trim(),
-        description: "",
-        category: "Career",
-        targetDate: "",
-        status: "not started",
-      }]);
+      setLongTermGoals([
+        ...longTermGoals,
+        {
+          id: Date.now().toString(),
+          title: goalInput.trim(),
+          description: "",
+          category: "Career",
+          targetDate: "",
+          status: "not started",
+        },
+      ]);
       setGoalInput("");
     }
   };
@@ -95,7 +157,9 @@ export default function OnboardingPage() {
             className="space-y-4"
           >
             <div className="text-center space-y-1">
-              <h1 className="text-xl font-semibold text-text">{currentStep.title}</h1>
+              <h1 className="text-xl font-semibold text-text">
+                {currentStep.title}
+              </h1>
               <p className="text-sm text-text-muted">{currentStep.subtitle}</p>
             </div>
 
@@ -165,17 +229,25 @@ export default function OnboardingPage() {
                     onChange={(e) => setGoalInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addGoal()}
                   />
-                  <Button size="sm" onClick={addGoal}>Add</Button>
+                  <Button size="sm" onClick={addGoal}>
+                    Add
+                  </Button>
                 </div>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {longTermGoals.map((goal) => (
-                    <div key={goal.id} className="flex items-center gap-2 text-sm text-text p-2 bg-surface-elevated rounded-lg">
+                    <div
+                      key={goal.id}
+                      className="flex items-center gap-2 text-sm text-text p-2 bg-surface-elevated rounded-lg"
+                    >
                       <Target className="h-3 w-3 text-accent" />
                       {goal.title}
                     </div>
                   ))}
                   {longTermGoals.length === 0 && (
-                    <p className="text-xs text-text-dim text-center py-4">Add goals like "Launch Dexter", "100 Users", "First Revenue"</p>
+                    <p className="text-xs text-text-dim text-center py-4">
+                      Add goals like "Launch Dexter", "100 Users", "First
+                      Revenue"
+                    </p>
                   )}
                 </div>
               </div>
@@ -192,7 +264,9 @@ export default function OnboardingPage() {
 
             {currentStep.id === "finish" && (
               <div className="text-center space-y-4">
-                <p className="text-sm text-text-muted">Everything is ready. Let&apos;s build together.</p>
+                <p className="text-sm text-text-muted">
+                  Everything is ready. Let&apos;s build together.
+                </p>
                 <div className="flex justify-center gap-2">
                   {["✅", "🚀", "🎉"].map((e, i) => (
                     <motion.span
@@ -235,7 +309,11 @@ export default function OnboardingPage() {
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === step ? "w-6 bg-accent" : i < step ? "w-1.5 bg-accent/50" : "w-1.5 bg-border"
+                i === step
+                  ? "w-6 bg-accent"
+                  : i < step
+                    ? "w-1.5 bg-accent/50"
+                    : "w-1.5 bg-border"
               }`}
             />
           ))}

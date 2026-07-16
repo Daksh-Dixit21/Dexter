@@ -1,11 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Compass, Calendar, FolderGit2, Rocket, Trophy, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ArrowRight,
+  Calendar,
+  Compass,
+  FolderGit2,
+  Rocket,
+  Trophy,
+} from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +22,13 @@ interface JourneyData {
   goalsAchieved: number;
 }
 
+interface Milestone {
+  id: string;
+  title: string;
+  date: string;
+  category: "project" | "deploy" | "learning" | "achievement" | "milestone";
+}
+
 const DEFAULT_JOURNEY: JourneyData = {
   daysBuilding: 1,
   projectsCreated: 1,
@@ -24,14 +37,79 @@ const DEFAULT_JOURNEY: JourneyData = {
 };
 
 const STATS = [
-  { key: "daysBuilding" as const, label: "Days Building", icon: Calendar, color: "text-blue-400" },
-  { key: "projectsCreated" as const, label: "Projects Created", icon: FolderGit2, color: "text-green-400" },
-  { key: "deploymentsMade" as const, label: "Deployments Made", icon: Rocket, color: "text-purple-400" },
-  { key: "goalsAchieved" as const, label: "Goals Achieved", icon: Trophy, color: "text-yellow-400" },
+  {
+    key: "daysBuilding" as const,
+    label: "Days Building",
+    icon: Calendar,
+    color: "text-blue-400",
+  },
+  {
+    key: "projectsCreated" as const,
+    label: "Projects Created",
+    icon: FolderGit2,
+    color: "text-green-400",
+  },
+  {
+    key: "deploymentsMade" as const,
+    label: "Deployments Made",
+    icon: Rocket,
+    color: "text-purple-400",
+  },
+  {
+    key: "goalsAchieved" as const,
+    label: "Goals Achieved",
+    icon: Trophy,
+    color: "text-yellow-400",
+  },
 ];
 
+function toSafeNumber(value: unknown, fallback = 0) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function normalizeJourneyData(value: JourneyData | Milestone[] | unknown): JourneyData {
+  if (Array.isArray(value)) {
+    const milestones = value as Milestone[];
+    if (milestones.length === 0) return DEFAULT_JOURNEY;
+
+    const timestamps = milestones
+      .map((milestone) => new Date(milestone.date).getTime())
+      .filter(Number.isFinite);
+    const firstTimestamp = timestamps.length ? Math.min(...timestamps) : Date.now();
+    const daysBuilding = Math.max(
+      1,
+      Math.ceil((Date.now() - firstTimestamp) / (24 * 60 * 60 * 1000)) + 1,
+    );
+
+    return {
+      daysBuilding,
+      projectsCreated: milestones.filter((m) => m.category === "project").length,
+      deploymentsMade: milestones.filter((m) => m.category === "deploy").length,
+      goalsAchieved: milestones.filter((m) =>
+        ["achievement", "milestone", "learning"].includes(m.category),
+      ).length,
+    };
+  }
+
+  const journey = value as Partial<JourneyData> | null | undefined;
+  return {
+    daysBuilding: toSafeNumber(journey?.daysBuilding, DEFAULT_JOURNEY.daysBuilding),
+    projectsCreated: toSafeNumber(
+      journey?.projectsCreated,
+      DEFAULT_JOURNEY.projectsCreated,
+    ),
+    deploymentsMade: toSafeNumber(
+      journey?.deploymentsMade,
+      DEFAULT_JOURNEY.deploymentsMade,
+    ),
+    goalsAchieved: toSafeNumber(journey?.goalsAchieved, DEFAULT_JOURNEY.goalsAchieved),
+  };
+}
+
 function CircularProgress({ value, max }: { value: number; max: number }) {
-  const percentage = Math.min((value / max) * 100, 100);
+  const safeValue = toSafeNumber(value);
+  const safeMax = Math.max(toSafeNumber(max, 100), 1);
+  const percentage = Math.min(Math.max((safeValue / safeMax) * 100, 0), 100);
   const radius = 36;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percentage / 100) * circumference;
@@ -64,7 +142,9 @@ function CircularProgress({ value, max }: { value: number; max: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-text text-xl font-bold">{Math.round(percentage)}%</span>
+        <span className="text-text text-xl font-bold">
+          {Math.round(percentage)}%
+        </span>
         <span className="text-text-dim text-[10px]">complete</span>
       </div>
     </div>
@@ -72,12 +152,23 @@ function CircularProgress({ value, max }: { value: number; max: number }) {
 }
 
 export default function JourneyProgress() {
-  const router = useRouter();
-  const [journey] = useLocalStorage<JourneyData>("dexter.journey", DEFAULT_JOURNEY);
+  const [storedJourney] = useLocalStorage<JourneyData | Milestone[]>(
+    "dexter.journey",
+    DEFAULT_JOURNEY,
+  );
+
+  const journey = useMemo(
+    () => normalizeJourneyData(storedJourney),
+    [storedJourney],
+  );
 
   const totalScore = useMemo(
-    () => journey.daysBuilding + journey.projectsCreated + journey.deploymentsMade + journey.goalsAchieved,
-    [journey]
+    () =>
+      journey.daysBuilding +
+      journey.projectsCreated +
+      journey.deploymentsMade +
+      journey.goalsAchieved,
+    [journey],
   );
   const maxScore = 100;
 
@@ -95,7 +186,7 @@ export default function JourneyProgress() {
           <div className="grid grid-cols-2 gap-3 flex-1">
             {STATS.map((stat) => {
               const Icon = stat.icon;
-              const value = journey[stat.key];
+              const value = toSafeNumber(journey[stat.key]);
               return (
                 <motion.div
                   key={stat.key}
@@ -121,7 +212,11 @@ export default function JourneyProgress() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/?tab=journey")}
+          onClick={() =>
+            window.dispatchEvent(
+              new CustomEvent("dexter:navigate", { detail: { view: "journey" } }),
+            )
+          }
           className="w-full text-accent hover:text-accent/80 hover:bg-accent/10 text-xs justify-between"
         >
           View Full Journey

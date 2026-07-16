@@ -1,13 +1,13 @@
 "use client";
 
 import {
+  AnimatePresence,
+  type MotionValue,
   motion,
-  MotionValue,
+  type SpringOptions,
   useMotionValue,
   useSpring,
   useTransform,
-  type SpringOptions,
-  AnimatePresence,
 } from "framer-motion";
 import {
   Children,
@@ -37,6 +37,7 @@ type DockProps = {
 type DockItemProps = {
   className?: string;
   children: React.ReactNode;
+  style?: React.CSSProperties;
 };
 type DockLabelProps = {
   className?: string;
@@ -123,7 +124,7 @@ function Dock({
   );
 }
 
-function DockItem({ children, className }: DockItemProps) {
+function DockItem({ children, className, style }: DockItemProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   const { distance, magnification, mouseX, spring } = useDock();
@@ -146,7 +147,7 @@ function DockItem({ children, className }: DockItemProps) {
   return (
     <motion.div
       ref={ref}
-      style={{ width }}
+      style={{ width, ...style }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
@@ -160,7 +161,10 @@ function DockItem({ children, className }: DockItemProps) {
       aria-haspopup="true"
     >
       {Children.map(children, (child) =>
-        cloneElement(child as React.ReactElement<Record<string, unknown>>, { width, isHovered }),
+        cloneElement(child as React.ReactElement<Record<string, unknown>>, {
+          width,
+          isHovered,
+        }),
       )}
     </motion.div>
   );

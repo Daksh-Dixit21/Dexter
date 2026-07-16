@@ -10,15 +10,22 @@ export async function getVercelProjects(token: string) {
 }
 
 export async function getVercelDeployments(token: string, projectId: string) {
-  const res = await fetch(`${VERCEL_API}/v6/deployments?projectId=${projectId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `${VERCEL_API}/v6/deployments?projectId=${projectId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!res.ok) throw new Error("Failed to fetch deployments");
   const data = await res.json();
   return data.deployments;
 }
 
-export async function triggerRedeploy(token: string, projectId: string, name: string) {
+export async function triggerRedeploy(
+  token: string,
+  projectId: string,
+  name: string,
+) {
   const res = await fetch(`${VERCEL_API}/v13/deployments`, {
     method: "POST",
     headers: {

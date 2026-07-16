@@ -1,25 +1,25 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowUpRight,
+  Calendar,
+  Check,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Link as LinkIcon,
   ListTodo,
   Plus,
-  Trash2,
-  Check,
-  Calendar,
-  Link as LinkIcon,
   Repeat,
+  Trash2,
   X,
-  Circle,
-  CheckCircle2,
-  Clock,
-  ArrowUpRight,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
@@ -62,7 +62,9 @@ function formatDueDate(dateStr: string): string {
   const target = new Date(dateStr);
   target.setHours(0, 0, 0, 0);
 
-  const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.round(
+    (target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   if (diffDays === 0) return "Today";
   if (diffDays === 1) return "Tomorrow";
@@ -89,6 +91,17 @@ export default function TodoSystem() {
   const [formRecurring, setFormRecurring] = useState<RecurringType>("none");
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
 
+  useEffect(() => {
+    const handler = (event: Event) => {
+      if ((event as CustomEvent<{ action: string }>).detail.action === "addTodo") {
+        resetForm();
+        setIsAdding(true);
+      }
+    };
+    window.addEventListener("dexter:command-action", handler);
+    return () => window.removeEventListener("dexter:command-action", handler);
+  }, []);
+
   const resetForm = () => {
     setFormText("");
     setFormDueDate("");
@@ -111,6 +124,9 @@ export default function TodoSystem() {
     setTodos((prev) => [...prev, newTodo]);
     resetForm();
     setIsAdding(false);
+    window.dispatchEvent(
+      new CustomEvent("dexter:mascot", { detail: { action: "taskAdded" } }),
+    );
   };
 
   const handleToggle = (id: string) => {
@@ -122,9 +138,15 @@ export default function TodoSystem() {
               completed: !t.completed,
               completedAt: !t.completed ? new Date().toISOString() : null,
             }
-          : t
-      )
+          : t,
+      ),
     );
+    const todo = todos.find((t) => t.id === id);
+    if (todo && !todo.completed) {
+      window.dispatchEvent(
+        new CustomEvent("dexter:mascot", { detail: { action: "taskCompleted" } }),
+      );
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -177,29 +199,33 @@ export default function TodoSystem() {
 
       {/* Filter Tabs */}
       <div className="flex gap-1 mb-6 p-1 bg-background rounded-lg">
-        {(["all", "today", "upcoming", "completed"] as FilterTab[]).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all capitalize",
-              activeTab === tab
-                ? "bg-surface-elevated text-text shadow-sm"
-                : "text-text-dim hover:text-text-muted"
-            )}
-          >
-            {tab}
-            <Badge
-              variant="secondary"
+        {(["all", "today", "upcoming", "completed"] as FilterTab[]).map(
+          (tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
               className={cn(
-                "text-[10px] px-1.5 py-0",
-                tab === activeTab ? "bg-accent/20 text-accent" : "bg-border text-text-dim"
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all capitalize",
+                activeTab === tab
+                  ? "bg-surface-elevated text-text shadow-sm"
+                  : "text-text-dim hover:text-text-muted",
               )}
             >
-              {tabCounts[tab]}
-            </Badge>
-          </button>
-        ))}
+              {tab}
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "text-[10px] px-1.5 py-0",
+                  tab === activeTab
+                    ? "bg-accent/20 text-accent"
+                    : "bg-border text-text-dim",
+                )}
+              >
+                {tabCounts[tab]}
+              </Badge>
+            </button>
+          ),
+        )}
       </div>
 
       {/* Add Form */}
@@ -259,7 +285,9 @@ export default function TodoSystem() {
                     <Repeat className="w-4 h-4 text-text-dim flex-shrink-0" />
                     <select
                       value={formRecurring}
-                      onChange={(e) => setFormRecurring(e.target.value as RecurringType)}
+                      onChange={(e) =>
+                        setFormRecurring(e.target.value as RecurringType)
+                      }
                       className="flex h-10 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       {RECURRING_OPTIONS.map((opt) => (
@@ -306,10 +334,10 @@ export default function TodoSystem() {
             {activeTab === "completed"
               ? "No completed todos yet."
               : activeTab === "today"
-              ? "No todos due today."
-              : activeTab === "upcoming"
-              ? "No upcoming todos."
-              : "All clear! Add a todo to get started."}
+                ? "No todos due today."
+                : activeTab === "upcoming"
+                  ? "No upcoming todos."
+                  : "All clear! Add a todo to get started."}
           </p>
         </div>
       ) : (
@@ -329,7 +357,7 @@ export default function TodoSystem() {
                     "flex items-center gap-3 p-3 rounded-lg border transition-colors",
                     todo.completed
                       ? "bg-background/50 border-border/50"
-                      : "bg-background border-border hover:border-accent/30"
+                      : "bg-background border-border hover:border-accent/30",
                   )}
                 >
                   {/* Checkbox */}
@@ -349,7 +377,9 @@ export default function TodoSystem() {
                     <p
                       className={cn(
                         "text-sm font-medium truncate",
-                        todo.completed ? "text-text-dim line-through" : "text-text"
+                        todo.completed
+                          ? "text-text-dim line-through"
+                          : "text-text",
                       )}
                     >
                       {todo.text}
@@ -361,7 +391,7 @@ export default function TodoSystem() {
                             "text-xs flex items-center gap-1",
                             isToday(todo.dueDate) && !todo.completed
                               ? "text-orange-400"
-                              : "text-text-dim"
+                              : "text-text-dim",
                           )}
                         >
                           <Clock className="w-3 h-3" />
@@ -408,7 +438,8 @@ export default function TodoSystem() {
       {todos.length > 0 && (
         <div className="mt-4 pt-4 border-t border-border">
           <p className="text-xs text-text-dim text-center">
-            {activeTodos.length} active · {completedTodos.length} completed · {todos.length} total
+            {activeTodos.length} active · {completedTodos.length} completed ·{" "}
+            {todos.length} total
           </p>
         </div>
       )}

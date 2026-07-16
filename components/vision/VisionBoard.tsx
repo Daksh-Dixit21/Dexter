@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Target,
-  Plus,
-  Trash2,
-  Edit3,
-  Calendar,
-  X,
-  Check,
-  TrendingUp,
   Briefcase,
-  Heart,
+  Calendar,
+  Check,
   DollarSign,
+  Edit3,
+  Heart,
+  Plus,
   Sparkles,
+  Target,
+  Trash2,
+  TrendingUp,
+  X,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
@@ -37,25 +37,43 @@ interface Goal {
   createdAt: string;
 }
 
-const CATEGORIES: GoalCategory[] = ["Personal", "Financial", "Career", "Health"];
+const CATEGORIES: GoalCategory[] = [
+  "Personal",
+  "Financial",
+  "Career",
+  "Health",
+];
 const STATUSES: { value: GoalStatus; label: string }[] = [
   { value: "not_started", label: "Not Started" },
   { value: "in_progress", label: "In Progress" },
   { value: "achieved", label: "Achieved" },
 ];
 
-const CATEGORY_CONFIG: Record<GoalCategory, { icon: React.ElementType; color: string }> = {
+const CATEGORY_CONFIG: Record<
+  GoalCategory,
+  { icon: React.ElementType; color: string }
+> = {
   Personal: { icon: Heart, color: "text-pink-400" },
   Financial: { icon: DollarSign, color: "text-green-400" },
   Career: { icon: Briefcase, color: "text-blue-400" },
   Health: { icon: TrendingUp, color: "text-orange-400" },
 };
 
-const STATUS_CONFIG: Record<GoalStatus, { label: string; className: string }> = {
-  not_started: { label: "Not Started", className: "bg-gray-500/20 text-gray-400" },
-  in_progress: { label: "In Progress", className: "bg-blue-500/20 text-blue-400" },
-  achieved: { label: "Achieved", className: "bg-green-500/20 text-green-400" },
-};
+const STATUS_CONFIG: Record<GoalStatus, { label: string; className: string }> =
+  {
+    not_started: {
+      label: "Not Started",
+      className: "bg-gray-500/20 text-gray-400",
+    },
+    in_progress: {
+      label: "In Progress",
+      className: "bg-blue-500/20 text-blue-400",
+    },
+    achieved: {
+      label: "Achieved",
+      className: "bg-green-500/20 text-green-400",
+    },
+  };
 
 function generateId(): string {
   return `goal-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
@@ -75,7 +93,9 @@ export default function VisionBoard() {
   const [formDescription, setFormDescription] = useState("");
   const [formCategory, setFormCategory] = useState<GoalCategory>("Personal");
   const [formTargetDate, setFormTargetDate] = useState("");
-  const [filterCategory, setFilterCategory] = useState<GoalCategory | "All">("All");
+  const [filterCategory, setFilterCategory] = useState<GoalCategory | "All">(
+    "All",
+  );
 
   const resetForm = () => {
     setFormTitle("");
@@ -120,8 +140,8 @@ export default function VisionBoard() {
               category: formCategory,
               targetDate: formTargetDate,
             }
-          : g
-      )
+          : g,
+      ),
     );
     resetForm();
     setEditingId(null);
@@ -132,13 +152,13 @@ export default function VisionBoard() {
   };
 
   const handleStatusChange = (id: string, status: GoalStatus) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === id ? { ...g, status } : g))
-    );
+    setGoals((prev) => prev.map((g) => (g.id === id ? { ...g, status } : g)));
   };
 
   const filteredGoals =
-    filterCategory === "All" ? goals : goals.filter((g) => g.category === filterCategory);
+    filterCategory === "All"
+      ? goals
+      : goals.filter((g) => g.category === filterCategory);
 
   const progress = getProgress(goals);
 
@@ -183,7 +203,8 @@ export default function VisionBoard() {
           />
         </div>
         <p className="text-xs text-text-dim mt-1">
-          {goals.filter((g) => g.status === "achieved").length} of {goals.length} goals achieved
+          {goals.filter((g) => g.status === "achieved").length} of{" "}
+          {goals.length} goals achieved
         </p>
       </div>
 
@@ -197,7 +218,7 @@ export default function VisionBoard() {
               "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
               filterCategory === cat
                 ? "bg-surface-elevated text-text shadow-sm"
-                : "text-text-dim hover:text-text-muted"
+                : "text-text-dim hover:text-text-muted",
             )}
           >
             {cat}
@@ -245,7 +266,9 @@ export default function VisionBoard() {
                 />
                 <select
                   value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value as GoalCategory)}
+                  onChange={(e) =>
+                    setFormCategory(e.target.value as GoalCategory)
+                  }
                   className="flex h-10 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {CATEGORIES.map((cat) => (
@@ -356,11 +379,14 @@ export default function VisionBoard() {
                       <select
                         value={goal.status}
                         onChange={(e) =>
-                          handleStatusChange(goal.id, e.target.value as GoalStatus)
+                          handleStatusChange(
+                            goal.id,
+                            e.target.value as GoalStatus,
+                          )
                         }
                         className={cn(
                           "text-xs px-2 py-1 rounded-md border-0 bg-transparent cursor-pointer",
-                          statusConfig.className
+                          statusConfig.className,
                         )}
                       >
                         {STATUSES.map((s) => (

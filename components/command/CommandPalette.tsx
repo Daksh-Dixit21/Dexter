@@ -1,39 +1,185 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Command } from "cmdk";
-import { useRouter } from "next/navigation";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
-  Rocket, GitBranch, BookOpen, Settings, Home, Plus, Search,
-  Target, Clock, Eye, Calendar, Layout, Folder, Bell, Moon, Sun,
-  Terminal, Globe, RefreshCw, Copy, ExternalLink, Star, Zap
+  Bell,
+  BookOpen,
+  Calendar,
+  Clock,
+  Copy,
+  ExternalLink,
+  Eye,
+  Folder,
+  GitBranch,
+  Globe,
+  Home,
+  Layout,
+  Moon,
+  Plus,
+  RefreshCw,
+  Rocket,
+  Search,
+  Settings,
+  Star,
+  Sun,
+  Target,
+  Terminal,
+  Zap,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 
+const APP_ACTION_EVENT = "dexter:command-action";
+
+function dispatchCommandAction(action: string) {
+  window.setTimeout(() => {
+    window.dispatchEvent(
+      new CustomEvent(APP_ACTION_EVENT, { detail: { action } }),
+    );
+  }, 120);
+}
+
 const commands = [
-  { id: "home", label: "Go Home", icon: Home, category: "Navigation", action: "navigate", href: "/?tab=home" },
-  { id: "deploy", label: "View Deployments", icon: Rocket, category: "Navigation", action: "navigate", href: "/?tab=deploy" },
-  { id: "actions", label: "Recent Activity", icon: GitBranch, category: "Navigation", action: "navigate", href: "/?tab=actions" },
-  { id: "reading", label: "Reading List", icon: BookOpen, category: "Navigation", action: "navigate", href: "/?tab=reading" },
-  { id: "projects", label: "Projects", icon: Folder, category: "Navigation", action: "navigate", href: "/?tab=projects" },
-  { id: "focus", label: "Focus Mode", icon: Target, category: "Navigation", action: "navigate", href: "/?tab=focus" },
-  { id: "vision", label: "Vision Board", icon: Eye, category: "Navigation", action: "navigate", href: "/?tab=vision" },
-  { id: "journey", label: "Journey Timeline", icon: Calendar, category: "Navigation", action: "navigate", href: "/?tab=journey" },
-  { id: "settings", label: "Settings", icon: Settings, category: "Navigation", action: "navigate", href: "/settings" },
-  { id: "new-todo", label: "Add Todo", icon: Plus, category: "Actions", action: "addTodo" },
-  { id: "new-reminder", label: "Add Reminder", icon: Bell, category: "Actions", action: "addReminder" },
-  { id: "new-reading", label: "Add Reading Link", icon: Plus, category: "Actions", action: "addReading" },
-  { id: "new-mission", label: "Set Today's Mission", icon: Target, category: "Actions", action: "setMission" },
-  { id: "start-focus", label: "Start Focus Session", icon: Clock, category: "Actions", action: "startFocus" },
-  { id: "new-project", label: "Add Project", icon: Folder, category: "Actions", action: "addProject" },
-  { id: "theme-toggle", label: "Toggle Theme", icon: Moon, category: "Settings", action: "toggleTheme" },
+  {
+    id: "home",
+    label: "Go Home",
+    icon: Home,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=home",
+  },
+  {
+    id: "deploy",
+    label: "View Deployments",
+    icon: Rocket,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=deploy",
+  },
+  {
+    id: "actions",
+    label: "Journey Timeline",
+    icon: GitBranch,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=journey",
+  },
+  {
+    id: "reading",
+    label: "Reading List",
+    icon: BookOpen,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=reading",
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    icon: Folder,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=projects",
+  },
+  {
+    id: "focus",
+    label: "Focus Mode",
+    icon: Target,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=focus",
+  },
+  {
+    id: "vision",
+    label: "Vision Board",
+    icon: Eye,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=vision",
+  },
+  {
+    id: "journey",
+    label: "Journey Timeline",
+    icon: Calendar,
+    category: "Navigation",
+    action: "navigate",
+    href: "/?tab=journey",
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    icon: Settings,
+    category: "Navigation",
+    action: "navigate",
+    href: "/settings",
+  },
+  {
+    id: "setup",
+    label: "Setup Guide",
+    icon: BookOpen,
+    category: "Navigation",
+    action: "navigate",
+    href: "/setup",
+  },
+  {
+    id: "new-todo",
+    label: "Add Todo",
+    icon: Plus,
+    category: "Actions",
+    action: "addTodo",
+  },
+  {
+    id: "new-reminder",
+    label: "Add Reminder",
+    icon: Bell,
+    category: "Actions",
+    action: "addReminder",
+  },
+  {
+    id: "new-reading",
+    label: "Add Reading Link",
+    icon: Plus,
+    category: "Actions",
+    action: "addReading",
+  },
+  {
+    id: "new-mission",
+    label: "Set Today's Mission",
+    icon: Target,
+    category: "Actions",
+    action: "setMission",
+  },
+  {
+    id: "start-focus",
+    label: "Start Focus Session",
+    icon: Clock,
+    category: "Actions",
+    action: "startFocus",
+  },
+  {
+    id: "new-project",
+    label: "Add Project",
+    icon: Folder,
+    category: "Actions",
+    action: "addProject",
+  },
+  {
+    id: "theme-toggle",
+    label: "Toggle Theme",
+    icon: Moon,
+    category: "Settings",
+    action: "toggleTheme",
+  },
 ];
 
 export function CommandPalette() {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const [theme, setTheme] = useLocalStorage<"light" | "dark">("dexter.theme", "dark");
+  const [theme, setTheme] = useLocalStorage<"light" | "dark">(
+    "dexter.theme",
+    "dark",
+  );
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -53,20 +199,37 @@ export function CommandPalette() {
         case "navigate":
           if (command.href) router.push(command.href);
           break;
-        case "toggleTheme":
+        case "toggleTheme": {
           const newTheme = theme === "dark" ? "light" : "dark";
           setTheme(newTheme);
-          document.documentElement.classList.toggle("dark", newTheme === "dark");
+          document.documentElement.classList.toggle(
+            "dark",
+            newTheme === "dark",
+          );
           break;
+        }
         case "startFocus":
           router.push("/?tab=focus");
           break;
         case "setMission":
-        case "addTodo":
-        case "addReminder":
-        case "addReading":
+          router.push("/?tab=home&action=setMission");
+          dispatchCommandAction("setMission");
+          break;
         case "addProject":
-          router.push("/");
+          router.push("/?tab=home&action=addProject");
+          dispatchCommandAction("addProject");
+          break;
+        case "addTodo":
+          router.push("/?tab=reading&action=addTodo");
+          dispatchCommandAction("addTodo");
+          break;
+        case "addReminder":
+          router.push("/?tab=reading&action=addReminder");
+          dispatchCommandAction("addReminder");
+          break;
+        case "addReading":
+          router.push("/?tab=reading&action=addReading");
+          dispatchCommandAction("addReading");
           break;
         default:
           break;
@@ -91,43 +254,49 @@ export function CommandPalette() {
               No results found.
             </Command.Empty>
             <Command.Group heading="Navigation" className="text-text-muted">
-              {commands.filter(c => c.category === "Navigation").map((command) => (
-                <Command.Item
-                  key={command.id}
-                  value={command.label}
-                  onSelect={() => runCommand(command)}
-                  className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
-                >
-                  <command.icon className="mr-2 h-4 w-4" />
-                  <span>{command.label}</span>
-                </Command.Item>
-              ))}
+              {commands
+                .filter((c) => c.category === "Navigation")
+                .map((command) => (
+                  <Command.Item
+                    key={command.id}
+                    value={command.label}
+                    onSelect={() => runCommand(command)}
+                    className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
+                  >
+                    <command.icon className="mr-2 h-4 w-4" />
+                    <span>{command.label}</span>
+                  </Command.Item>
+                ))}
             </Command.Group>
             <Command.Group heading="Actions" className="text-text-muted">
-              {commands.filter(c => c.category === "Actions").map((command) => (
-                <Command.Item
-                  key={command.id}
-                  value={command.label}
-                  onSelect={() => runCommand(command)}
-                  className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
-                >
-                  <command.icon className="mr-2 h-4 w-4" />
-                  <span>{command.label}</span>
-                </Command.Item>
-              ))}
+              {commands
+                .filter((c) => c.category === "Actions")
+                .map((command) => (
+                  <Command.Item
+                    key={command.id}
+                    value={command.label}
+                    onSelect={() => runCommand(command)}
+                    className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
+                  >
+                    <command.icon className="mr-2 h-4 w-4" />
+                    <span>{command.label}</span>
+                  </Command.Item>
+                ))}
             </Command.Group>
             <Command.Group heading="Settings" className="text-text-muted">
-              {commands.filter(c => c.category === "Settings").map((command) => (
-                <Command.Item
-                  key={command.id}
-                  value={command.label}
-                  onSelect={() => runCommand(command)}
-                  className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
-                >
-                  <command.icon className="mr-2 h-4 w-4" />
-                  <span>{command.label}</span>
-                </Command.Item>
-              ))}
+              {commands
+                .filter((c) => c.category === "Settings")
+                .map((command) => (
+                  <Command.Item
+                    key={command.id}
+                    value={command.label}
+                    onSelect={() => runCommand(command)}
+                    className="relative flex cursor-pointer select-none items-center rounded-lg px-2 py-2.5 text-sm outline-none aria-selected:bg-surface-elevated data-[selected]:bg-surface-elevated"
+                  >
+                    <command.icon className="mr-2 h-4 w-4" />
+                    <span>{command.label}</span>
+                  </Command.Item>
+                ))}
             </Command.Group>
           </Command.List>
         </Command>

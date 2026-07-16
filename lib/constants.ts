@@ -1,4 +1,15 @@
-import { GitBranch, Globe, Server, Eye, Copy, FileText, Terminal, RefreshCw, Rocket, FolderOpen } from "lucide-react";
+import {
+  Copy,
+  Eye,
+  FileText,
+  FolderOpen,
+  GitBranch,
+  Globe,
+  RefreshCw,
+  Rocket,
+  Server,
+  Terminal,
+} from "lucide-react";
 import { GitHubIcon } from "@/components/ui/github-icon";
 
 export const QUOTES = [
@@ -38,18 +49,78 @@ export const QUOTE_AUTHORS = [
 ];
 
 export const QUICK_ACTIONS = [
-  { id: "public-repo", label: "Public Repository", icon: GitHubIcon, description: "Create a public repo" },
-  { id: "private-repo", label: "Private Repository", icon: GitHubIcon, description: "Create a private repo" },
-  { id: "deploy", label: "Deploy", icon: Rocket, description: "Deploy to production" },
-  { id: "redeploy", label: "Redeploy", icon: RefreshCw, description: "Redeploy latest build" },
-  { id: "production-url", label: "Production URL", icon: Globe, description: "Open production URL" },
-  { id: "preview-url", label: "Preview URL", icon: Eye, description: "Open preview URL" },
-  { id: "clone-url", label: "Clone URL", icon: Copy, description: "Copy clone URL" },
-  { id: "logs", label: "Logs", icon: FileText, description: "View deployment logs" },
-  { id: "open-repo", label: "Open Repository", icon: FolderOpen, description: "Open in GitHub" },
-  { id: "actions", label: "GitHub Actions", icon: GitBranch, description: "View workflows" },
-  { id: "terminal", label: "Open Terminal", icon: Terminal, description: "Open in terminal" },
-  { id: "server", label: "Server Status", icon: Server, description: "Check server status" },
+  {
+    id: "public-repo",
+    label: "Public Repository",
+    icon: GitHubIcon,
+    description: "Create a public repo",
+  },
+  {
+    id: "private-repo",
+    label: "Private Repository",
+    icon: GitHubIcon,
+    description: "Create a private repo",
+  },
+  {
+    id: "deploy",
+    label: "Deploy",
+    icon: Rocket,
+    description: "Deploy to production",
+  },
+  {
+    id: "redeploy",
+    label: "Redeploy",
+    icon: RefreshCw,
+    description: "Redeploy latest build",
+  },
+  {
+    id: "production-url",
+    label: "Production URL",
+    icon: Globe,
+    description: "Open production URL",
+  },
+  {
+    id: "preview-url",
+    label: "Preview URL",
+    icon: Eye,
+    description: "Open preview URL",
+  },
+  {
+    id: "clone-url",
+    label: "Clone URL",
+    icon: Copy,
+    description: "Copy clone URL",
+  },
+  {
+    id: "logs",
+    label: "Logs",
+    icon: FileText,
+    description: "View deployment logs",
+  },
+  {
+    id: "open-repo",
+    label: "Open Repository",
+    icon: FolderOpen,
+    description: "Open in GitHub",
+  },
+  {
+    id: "actions",
+    label: "GitHub Actions",
+    icon: GitBranch,
+    description: "View workflows",
+  },
+  {
+    id: "terminal",
+    label: "Open Terminal",
+    icon: Terminal,
+    description: "Open in terminal",
+  },
+  {
+    id: "server",
+    label: "Server Status",
+    icon: Server,
+    description: "Check server status",
+  },
 ];
 
 export const INTEGRATIONS = [

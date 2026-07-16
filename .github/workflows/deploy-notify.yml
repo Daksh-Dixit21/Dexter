@@ -1,0 +1,43 @@
+name: 🚀 Deploy Notification
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get commit info
+        id: commit
+        run: |
+          echo "MESSAGE=$(git log -1 --pretty=format:'%s')" >> $GITHUB_OUTPUT
+          echo "AUTHOR=$(git log -1 --pretty=format:'%an')" >> $GITHUB_OUTPUT
+          echo "SHORT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Send Telegram Deploy Notification
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          MESSAGE="🚀 <b>Dexter Deployed!</b>
+
+          📦 <b>Repo:</b> ${REPO}
+          🌿 <b>Branch:</b> ${BRANCH}
+          📝 <b>Commit:</b> ${{ steps.commit.outputs.SHORT_SHA }} — ${{ steps.commit.outputs.MESSAGE }}
+          👤 <b>By:</b> ${{ steps.commit.outputs.AUTHOR }}
+
+          🔗 <a href=\"${RUN_URL}\">View Actions Run</a>
+
+          <i>Ship it! 🎉</i>"
+
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            -H "Content-Type: application/json" \
+            -d "{\"chat_id\": \"${CHAT_ID}\", \"text\": \"${MESSAGE}\", \"parse_mode\": \"HTML\", \"disable_web_page_preview\": true}"

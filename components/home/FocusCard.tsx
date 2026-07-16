@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Timer, Play, Square, Coffee, Zap } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { AnimatePresence, motion } from "framer-motion";
+import { Coffee, Play, Square, Timer, Zap } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ function formatElapsed(seconds: number): string {
 export default function FocusCard() {
   const [session, setSession] = useLocalStorage<FocusSession | null>(
     "dexter.focusSession",
-    null
+    null,
   );
   const [elapsed, setElapsed] = useState(0);
 
@@ -81,7 +81,7 @@ export default function FocusCard() {
                     "text-xs",
                     session.type === "pomodoro"
                       ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                      : "bg-purple-500/20 text-purple-400 border-purple-500/30"
+                      : "bg-purple-500/20 text-purple-400 border-purple-500/30",
                   )}
                 >
                   {session.type === "pomodoro" ? (

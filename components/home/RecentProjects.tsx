@@ -1,24 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  FolderOpen,
-  Plus,
-  GitBranch,
-  Trash2,
-  ExternalLink,
-  X,
-  Rocket,
-  Pause,
   Archive,
+  ExternalLink,
+  FolderOpen,
+  GitBranch,
+  Pause,
+  Plus,
+  Rocket,
+  Trash2,
+  X,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { formatRelativeTime, cn } from "@/lib/utils";
+import { cn, formatRelativeTime } from "@/lib/utils";
 
 interface Project {
   id: string;
@@ -43,22 +43,47 @@ const DEFAULT_PROJECTS: Project[] = [
 function statusConfig(status: Project["status"]) {
   switch (status) {
     case "active":
-      return { color: "bg-green-400", text: "Active", badgeClass: "bg-green-500/20 text-green-400 border-green-500/30", icon: Rocket };
+      return {
+        color: "bg-green-400",
+        text: "Active",
+        badgeClass: "bg-green-500/20 text-green-400 border-green-500/30",
+        icon: Rocket,
+      };
     case "paused":
-      return { color: "bg-yellow-400", text: "Paused", badgeClass: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30", icon: Pause };
+      return {
+        color: "bg-yellow-400",
+        text: "Paused",
+        badgeClass: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+        icon: Pause,
+      };
     case "archived":
-      return { color: "bg-text-dim", text: "Archived", badgeClass: "bg-surface-elevated text-text-dim border-border", icon: Archive };
+      return {
+        color: "bg-text-dim",
+        text: "Archived",
+        badgeClass: "bg-surface-elevated text-text-dim border-border",
+        icon: Archive,
+      };
   }
 }
 
 export default function RecentProjects() {
   const [projects, setProjects] = useLocalStorage<Project[]>(
     "dexter.projects",
-    DEFAULT_PROJECTS
+    DEFAULT_PROJECTS,
   );
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState("");
   const [newRepo, setNewRepo] = useState("");
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      if ((event as CustomEvent<{ action: string }>).detail.action === "addProject") {
+        setShowForm(true);
+      }
+    };
+    window.addEventListener("dexter:command-action", handler);
+    return () => window.removeEventListener("dexter:command-action", handler);
+  }, []);
 
   const addProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +119,11 @@ export default function RecentProjects() {
             onClick={() => setShowForm(!showForm)}
             className="text-accent hover:text-accent/80 h-7 px-2 text-xs"
           >
-            {showForm ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+            {showForm ? (
+              <X className="h-3 w-3" />
+            ) : (
+              <Plus className="h-3 w-3" />
+            )}
           </Button>
         </div>
       </CardHeader>
@@ -155,13 +184,24 @@ export default function RecentProjects() {
                     transition={{ delay: idx * 0.05 }}
                     className="flex items-center gap-3 p-3 rounded-lg bg-surface-elevated/50 hover:bg-surface-elevated transition-colors group"
                   >
-                    <div className={cn("h-2 w-2 rounded-full shrink-0", config.color)} />
+                    <div
+                      className={cn(
+                        "h-2 w-2 rounded-full shrink-0",
+                        config.color,
+                      )}
+                    />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-text text-sm font-medium truncate">
                           {project.name}
                         </span>
-                        <Badge variant="secondary" className={cn("text-[10px] px-1.5 py-0", config.badgeClass)}>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "text-[10px] px-1.5 py-0",
+                            config.badgeClass,
+                          )}
+                        >
                           <StatusIcon className="h-2.5 w-2.5 mr-0.5" />
                           {config.text}
                         </Badge>
@@ -184,7 +224,11 @@ export default function RecentProjects() {
                           className="h-6 w-6 p-0 text-text-dim hover:text-accent"
                           asChild
                         >
-                          <a href={project.deployUrl} target="_blank" rel="noopener noreferrer">
+                          <a
+                            href={project.deployUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         </Button>
