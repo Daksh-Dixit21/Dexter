@@ -100,23 +100,19 @@ export async function POST(req: NextRequest) {
           { status: res.status },
         );
 
-      // Auto-trigger initial deployment
+      // Vercel auto-deploys on project creation with git repo linked.
+      // Fetch latest deployment status after a short delay.
       if (data.id) {
-        const deployRes = await fetch(`${VERCEL_API}/v13/deployments`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: data.name,
-            project: data.id,
-            target: "production",
-          }),
-        });
-        const deployData = await deployRes.json();
-        if (deployRes.ok) {
-          data.deployment = deployData;
+        await new Promise((r) => setTimeout(r, 2000));
+        const listRes = await fetch(
+          `${VERCEL_API}/v6/deployments?projectId=${data.id}&limit=1`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          if (listData.deployments?.length > 0) {
+            data.deployment = listData.deployments[0];
+          }
         }
       }
 
